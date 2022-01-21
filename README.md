@@ -1,26 +1,26 @@
-# MiPurifier Prometheus Exporter
+# MiPurifier 3 Prometheus Exporter
 
 A simple exporter that can read a JSON file with Xiaomi air purifiers exposes the data as prometheus metrics.
 
-This is only tested with the Mi Purifier 2S, but should work with any purifier supported by [python-miio](https://python-miio.readthedocs.io/en/latest/).
+Please find the documentation here on how to obtain a token: [python-miio](https://python-miio.readthedocs.io/en/latest/).
 
-For help on getting the ip and/or token please look at the [python-miio](https://python-miio.readthedocs.io/en/latest/discovery.html#tokens-from-backups) docs.
-
-If you are on iOS and find a 96 character token, please read the [Decrypting iOS Token](#decrypting-ios-token) section
-
-The format for the JSON file can be seen at [example_purifiers.json](/example_purifiers.json)
+This software only currently works with Mi Purifier version 3.
+For usage with previous versions, please look into [this project](https://github.com/shrikantpatnaik/mi_purifier_exporter).
 
 ## Usage
+
+You can run the script directly on your machine or use docker.
+
+### Run directly
 
 ```bash
 pip install -r requirements.txt
  
-python exporter.py PATH_TO_JSON
+MI_IP=192.168.1.100 MI_TOKEN=thetokengoeshere python3 exporter.py
 ```
 
-## Decrypting iOS Token
-```bash
-pip install pycrypto
+### Run with docker
 
-python decrypt_ios_token.py TOKEN
+```bash
+docker run -d --name xiaomi-exporter -p 8000:8000 -e MI_IP=192.168.1.100 -e MI_TOKEN=thetokengoeshere vexdev/xiaomi-exporter
 ```

@@ -1,8 +1,9 @@
 import time
 import json
 import sys
+import os
 
-from miio import airpurifier, exceptions
+from miio import airpurifier_miot, exceptions
 
 # noinspection PyProtectedMember
 from prometheus_client import start_http_server, Gauge, Info
@@ -23,34 +24,24 @@ def exit_with_error(error):
 if __name__ == '__main__':
     port_number = 8000
 
-    if len(sys.argv) < 2:
-        exit_with_error("JSON file must be passed as first argument")
+    token = os.getenv('MI_TOKEN')
+    ip = os.getenv('MI_IP')
+    port_number = os.getenv('MI_PORT', 8000)
 
-    with open(sys.argv[1]) as f:
-        purifiers = json.load(f)
-
-    if len(purifiers["purifiers"]) < 1:
-        exit_with_error("No purifiers found in JSON File")
-
-    for purifier in purifiers["purifiers"]:
-        purifier["object"] = airpurifier.AirPurifier(ip=purifier["ip"], token=purifier["token"])
-
-    if len(sys.argv) > 2:
-        port_number = int(sys.argv[2])
+    purifier = airpurifier_miot.AirPurifierMiot(ip=ip, token=token)
     start_http_server(port_number)
 
     while True:
         time.sleep(1)
-        for purifier in purifiers["purifiers"]:
-            try:
-                status = purifier["object"].status()
-                aqi.labels(purifier["name"]).set(status.aqi)
-                temp.labels(purifier["name"]).set(status.temperature)
-                humidity.labels(purifier["name"]).set(status.humidity)
-                filter_life_remaining.labels(purifier["name"]).set(status.filter_life_remaining)
-                mode.labels(purifier["name"], status.mode.name, status.filter_type.name)\
-                    .set(1 if status.power == "on" else 0)
-            except exceptions.DeviceException as error:
-                pass
-            except OSError as error:
-                pass
+        try:
+            status = purifier.status()
+            aqi.labels("air").set(status.aqi)
+            temp.labels("air").set(status.temperature)
+            humidity.labels("air").set(status.humidity)
+            filter_life_remaining.labels("air").set(status.filter_life_remaining)
+            mode.labels("air", status.mode.name, status.filter_type.name)\
+                .set(1 if status.power == "on" else 0)
+        except exceptions.DeviceException as error:
+            pass
+        except OSError as error:
+            pass
