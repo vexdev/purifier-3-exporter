@@ -8,15 +8,15 @@ from miio import exceptions
 
 
 # noinspection PyProtectedMember
-from prometheus_client import start_http_server, Gauge, Info
+from prometheus_client import start_http_server, Gauge
 
 status = None
 
 aqi = Gauge('mi_purifier_aqi', 'AQI from Purifier', ['name'])
 temp = Gauge('mi_purifier_temp', 'Temperature from Purifier', ['name'])
-humidity = Gauge('mi_purifier_humidity', 'humidity from Purifier', ['name'])
+humidity = Gauge('mi_purifier_humidity', 'Humidity from Purifier', ['name'])
 filter_life_remaining = Gauge('mi_purifier_filter_life', 'Filter life in percent from Purifier', ['name'])
-mode = Gauge('mi_purifier_status', 'Status of Purifier as labels', ['name', 'mode', 'filterType'])
+motor_speed = Gauge('mi_purifier_motor_speed', 'Active motor speed', ['name'])
 
 
 def exit_with_error(error):
@@ -46,9 +46,8 @@ if __name__ == '__main__':
                 humidity.labels("air").set(status.humidity)
             if status.filter_life_remaining:
                 filter_life_remaining.labels("air").set(status.filter_life_remaining)
-            if status.mode and status.mode.name and status.filter_type and status.filter_type.name and status.power:
-                mode.labels("air", status.mode.name, status.filter_type.name)\
-                    .set(1 if status.power == "on" else 0)
+            if status.motor_speed:
+                motor_speed.labels("air").set(status.motor_speed)
         except exceptions.DeviceException as error:
             pass
         except OSError as error:
