@@ -3,7 +3,9 @@ import json
 import sys
 import os
 
-from miio import airpurifier_miot, exceptions
+import purifier
+from miio import exceptions
+
 
 # noinspection PyProtectedMember
 from prometheus_client import start_http_server, Gauge, Info
@@ -28,12 +30,13 @@ if __name__ == '__main__':
     ip = os.getenv('MI_IP')
     port_number = os.getenv('MI_PORT', 8000)
 
-    purifier = airpurifier_miot.AirPurifierMiot(ip=ip, token=token)
+    purifier = purifier.AirPurifierMiot(ip=ip, token=token)
     start_http_server(port_number)
 
     while True:
         time.sleep(10)
         try:
+            purifier.set_property("aqi_heartbeat", 1)
             status = purifier.status()
             if status.aqi:
                 aqi.labels("air").set(status.aqi)
