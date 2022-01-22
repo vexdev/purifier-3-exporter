@@ -32,15 +32,20 @@ if __name__ == '__main__':
     start_http_server(port_number)
 
     while True:
-        time.sleep(1)
+        time.sleep(10)
         try:
             status = purifier.status()
-            aqi.labels("air").set(status.aqi)
-            temp.labels("air").set(status.temperature)
-            humidity.labels("air").set(status.humidity)
-            filter_life_remaining.labels("air").set(status.filter_life_remaining)
-            mode.labels("air", status.mode.name, status.filter_type.name)\
-                .set(1 if status.power == "on" else 0)
+            if status.aqi:
+                aqi.labels("air").set(status.aqi)
+            if status.temperature:
+                temp.labels("air").set(status.temperature)
+            if status.humidity:
+                humidity.labels("air").set(status.humidity)
+            if status.filter_life_remaining:
+                filter_life_remaining.labels("air").set(status.filter_life_remaining)
+            if status.mode and status.mode.name and status.filter_type and status.filter_type.name and status.power:
+                mode.labels("air", status.mode.name, status.filter_type.name)\
+                    .set(1 if status.power == "on" else 0)
         except exceptions.DeviceException as error:
             pass
         except OSError as error:
